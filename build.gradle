@@ -17,7 +17,9 @@ run.enabled = false
 distTar.enabled=false
 distZip.enabled=false
 
-applicationName = 'solace-samples-java-jcsmp'
+application {
+    applicationName = 'solace-samples-java-jcsmp'
+}
 //version = ''
 
 jar {
@@ -52,8 +54,6 @@ idea {
     module {
         downloadJavadoc = true
         downloadSources = true
-        sourceCompatibility = 17
-        targetCompatibility = 17
     }
 }
 
@@ -72,12 +72,12 @@ configurations {
 
 dependencies {
     // Solace Messaging API for Java Dependencies
-    implementation group: 'com.solacesystems', name: 'sol-jcsmp', version: '[10.31.0,)'
+    implementation 'com.solacesystems:sol-jcsmp:[10.31.0,)'
     // new improved logging framework, log4j2
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.+'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.+'
+    implementation 'org.apache.logging.log4j:log4j-api:2.+'
+    implementation 'org.apache.logging.log4j:log4j-core:2.+'
     // needed to 'bridge' the JCSMP API logs from JCL to log4j
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-jcl', version: '2.+'
+    implementation 'org.apache.logging.log4j:log4j-jcl:2.+'
     // include this next one if you want to use JsonLayout for log4j
     //implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.4'
     //implementation group: 'org.fusesource.jansi', name: 'jansi', version: '2.4.1'
@@ -88,18 +88,18 @@ dependencies {
     //testImplementation 'junit:junit:4.13'
 
     // Distributed tracing dependencies: OpenTelemetry and OpenTelemetry for Solace JCSMP API
-    implementation group: 'com.solace', name: 'solace-opentelemetry-jcsmp-integration', version: '1.1.0'
-    implementation group: 'io.opentelemetry', name: 'opentelemetry-exporter-otlp', version: '1.47.+'
-    implementation group: 'io.opentelemetry.semconv', name: 'opentelemetry-semconv', version: '1.29.+'
+    implementation 'com.solace:solace-opentelemetry-jcsmp-integration:1.1.0'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp:1.47.+'
+    implementation 'io.opentelemetry.semconv:opentelemetry-semconv:1.29.+'
 
     // Solace SERDES Dependencies
-    implementation group: 'com.solace', name: 'solace-serdes', version: '1.+'
+    implementation 'com.solace:solace-serdes:1.+'
     implementation(platform("com.solace:solace-schema-registry-serdes-bom:1.+"))
     implementation("com.solace:solace-schema-registry-avro-serde")
     implementation("com.solace:solace-schema-registry-jsonschema-serde")
 
     // Avro tools for schema code generation
-    avroTools group: 'org.apache.avro', name: 'avro-tools', version: '1.12.0'
+    avroTools 'org.apache.avro:avro-tools:1.12.0'
 }
 
 // Define generated source directories for schema compilation
@@ -215,7 +215,7 @@ scripts.each() { scriptName, className ->
     def t = tasks.create(name: scriptName+'StartScript', type: CreateStartScripts) {
         mainClass = className
         applicationName = scriptName
-        outputDir = new File(project.buildDir, 'scripts')
+        outputDir = layout.buildDirectory.dir('scripts').get().asFile
         classpath = jar.outputs.files + project.configurations.runtimeClasspath
         classpath += files('src/dist/config')  // this is where our log4j2.xml file will be
         doLast {  // necessary since Gradle assumes all classpath are under 'lib', need to modify
@@ -226,15 +226,15 @@ scripts.each() { scriptName, className ->
         }
         defaultJvmOpts = ['-ea']  // enable assertions
     }
-    applicationDistribution.into("bin") {
+    application.applicationDistribution.into("bin") {
         from(t)
-        fileMode = 0755
+        filePermissions { unix(0755) }
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }
 
 installDist {
-    destinationDir = new File(project.buildDir, 'staged')
+    destinationDir = layout.buildDirectory.dir('staged').get().asFile
 }
 
 assemble.dependsOn installDist
