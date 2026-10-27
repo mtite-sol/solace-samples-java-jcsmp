@@ -34,7 +34,7 @@ For detailed information about SERDES samples, Schema Registry setup, and schema
 This tutorial requires the Solace Java API library. Download the Java API library to your computer from [here](solace.com/downloads/).
 
 # Requirements
-- Java 11 or later
+- Java 17 or later
 
 ## Build the Samples
 
